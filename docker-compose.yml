@@ -1,0 +1,10 @@
+version: '3'
+services:
+  cli:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./:/weather_cli
+    command: bash -c 'composer install && chmod +x weather && php -a'
+    tty: true

@@ -1,0 +1,27 @@
+#!/usr/bin/env php
+
+<?php
+set_time_limit(0);
+
+$autoload_file = __DIR__.'/vendor/autoload.php';
+if (!file_exists($autoload_file)) {
+    throw new RuntimeException(
+        "\n"
+        ."[ERROR] weather depends on some external libraries and components.\n"
+        ."It seems that those dependencies aren't properly installed.\n\n"
+        ."Perhaps you forgot to execute 'php composer.phar install' before\n"
+        ."using weather for the first time?\n\n"
+        ."This command requires that you have previously installed PHP and Composer.\n"
+        ."To do so, execute the following commands:\n\n"
+        ." $ sudo apt install php-7.3 php-7.3-cli\n\n"
+        ." $ curl -s http://getcomposer.org/installer | php"
+        ."\n\n"
+    );
+}
+
+require $autoload_file;
+
+$container = require __DIR__ . '/src/container.php';
+
+$application = $container['application'];
+$application->run();
