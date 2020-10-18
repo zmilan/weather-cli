@@ -16,7 +16,7 @@ The Weather is a **PHP-based command-line app** that prints the current weather 
     
     
 ## Starting application
-- Run `docker-compose up -d && sudo docker-compose exec cli bash`
+- Run `docker-compose up -d && docker-compose exec cli bash`
 
 ## Using application
 - Check current weather with the city name: `./weather London` or `php weather London`
