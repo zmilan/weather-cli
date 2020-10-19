@@ -14,22 +14,29 @@ use Weather\Exception\WeatherApiRequestException;
 use Weather\Exception\WeatherApiProcessException;
 
 /**
- * Class OpenWeatherMap
+ * Class OpenWeatherMap. Extreme simple implementation of [OpenWeatherMap](https://openweathermap.org/api)
+ * weather service.
+ *
+ * @author [Milan Zivkovic](https://github.com/zmilan)
  * @package Weather\Api
  */
 class OpenWeatherMap
 {
     /**
+     * API url
      * @var string|null
      */
     protected ?string $api_url;
 
     /**
+     * Units of measurement. standard, metric and imperial units are available. If you do not use the units parameter,
+     * standard units will be applied by default.
      * @var string|null
      */
     protected ?string $units;
 
     /**
+     * Your unique API key (you can always find it on your account page under the
      * @var string|null
      */
     protected ?string $key;
@@ -50,6 +57,8 @@ class OpenWeatherMap
 
 
     /**
+     * Call API and return result in form of array.
+     *
      * @param string $query
      *
      * @return array

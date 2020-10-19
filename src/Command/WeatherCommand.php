@@ -1,10 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/**
- *
- */
-
 namespace Weather\Command;
 
 use Symfony\Component\Console\Command\Command;
@@ -19,6 +15,7 @@ use Weather\Exception\WeatherApiException;
 
 /**
  * Class WeatherCommand
+ * @author [Milan Zivkovic](https://github.com/zmilan)
  * @package Weather\Command
  */
 class WeatherCommand extends Command
@@ -27,6 +24,7 @@ class WeatherCommand extends Command
     protected static $defaultName = 'app:weather';
 
     /**
+     * OpenWeatherMap instance
      * @var \Weather\Api\OpenWeatherMap
      */
     protected OpenWeatherMap $api;
