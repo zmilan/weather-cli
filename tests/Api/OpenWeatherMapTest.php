@@ -3,60 +3,95 @@
 
 namespace Weather\Api;
 
+use Mockery;
 use PHPUnit\Framework\TestCase;
+use Weather\Contract\HttpRequestContract;
+use Weather\DTO\OpenWeatherMapConfiguration;
+use Weather\DTO\ResponseData;
+use Weather\Enum\Unit;
 use Weather\Exception\WeatherApiDataException;
 use Weather\Exception\WeatherApiRequestException;
 
 class OpenWeatherMapTest extends TestCase
 {
-    public function testGetDataSuccessfully(): void
+    private function getOpenWeatherMapConfig(): OpenWeatherMapConfiguration
     {
-        $openWeatherMap = new OpenWeatherMap(
-            $_ENV['OPEN_WEATHER_MAP_URL'],
-            $_ENV['OPEN_WEATHER_MAP_KEY'],
-            $_ENV['OPEN_WEATHER_MAP_UNITS']
+        return new OpenWeatherMapConfiguration(
+            'https://testurl.com',
+            'some-key',
+            Unit::fromEnv(null)
         );
-        $data = $openWeatherMap->getData('Kranj, SI');
-        self::assertEquals($data['name'], 'Kranj');
+    }
+    public function testGetWeatherSuccessfully(): void
+    {
+        $responseData = new ResponseData(
+            'Sunny',
+            '22',
+            'Kranj',
+            []
+        );
+
+        $httpRequestMock = Mockery::mock(HttpRequestContract::class);
+        $httpRequestMock->shouldReceive('getData')
+            ->andReturn($responseData);
+
+        $openWeatherMap = new OpenWeatherMap(
+            $this->getOpenWeatherMapConfig(),
+            $httpRequestMock
+        );
+        $weatherData = $openWeatherMap->getWeather('Kranj, SI');
+        self::assertEquals('Kranj', $weatherData->name);
     }
 
-    public function testGetDataWrongConfig(): void
+    public function testGetWeatherWrongOpenWeatherMapConfig(): void
     {
         $this->expectException(WeatherApiRequestException::class);
-        $openWeatherMap = new OpenWeatherMap(
+
+        $openWeatherMapConfig = new OpenWeatherMapConfiguration(
             '',
-            ''
+            '',
+            null
+        );;
+
+        $httpRequestMock = Mockery::mock(HttpRequestContract::class);
+        $httpRequestMock->shouldReceive('getData')
+            ->andThrow(new WeatherApiRequestException);
+
+        $openWeatherMap = new OpenWeatherMap(
+            $openWeatherMapConfig,
+            $httpRequestMock
         );
-        $openWeatherMap->getData('Kranj, SI');
+        $openWeatherMap->getWeather('Kranj, SI');
     }
 
-    public function testGetDataMissingApiKey(): void
+    public function testGetWeatherEmptyQueryString(): void
     {
         $this->expectException(WeatherApiRequestException::class);
+
+        $httpRequestMock = Mockery::mock(HttpRequestContract::class);
+        $httpRequestMock->shouldReceive('getData')
+            ->andThrow(new WeatherApiRequestException);
+
         $openWeatherMap = new OpenWeatherMap(
-            $_ENV['OPEN_WEATHER_MAP_URL'],
-            ''
+            $this->getOpenWeatherMapConfig(),
+            $httpRequestMock
         );
-        $openWeatherMap->getData('Kranj, SI');
+
+        $openWeatherMap->getWeather('');
     }
 
-    public function testGetDataMissingCity(): void
-    {
-        $this->expectException(WeatherApiRequestException::class);
-        $openWeatherMap = new OpenWeatherMap(
-            $_ENV['OPEN_WEATHER_MAP_URL'],
-            $_ENV['OPEN_WEATHER_MAP_KEY']
-        );
-        $openWeatherMap->getData('');
-    }
-
-    public function testGetDataOzCity(): void
+    public function testGetWeatherOzCity(): void
     {
         $this->expectException(WeatherApiDataException::class);
+
+        $httpRequestMock = Mockery::mock(HttpRequestContract::class);
+        $httpRequestMock->shouldReceive('getData')
+            ->andThrow(new WeatherApiDataException);
+
         $openWeatherMap = new OpenWeatherMap(
-            $_ENV['OPEN_WEATHER_MAP_URL'],
-            $_ENV['OPEN_WEATHER_MAP_KEY']
+            $this->getOpenWeatherMapConfig(),
+            $httpRequestMock
         );
-        $openWeatherMap->getData('Oz');
+        $openWeatherMap->getWeather('Oz');
     }
 }

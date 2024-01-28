@@ -9,7 +9,7 @@ if (!file_exists($autoload_file)) {
         "\n"
         ."[ERROR] weather depends on some external libraries and components.\n"
         ."It seems that those dependencies aren't properly installed.\n\n"
-        ."Perhaps you forgot to execute 'php composer.phar install' before\n"
+        ."Perhaps you forgot to execute 'composer install' before\n"
         ."using weather for the first time?\n\n"
         ."This command requires that you have previously installed PHP and Composer.\n"
         ."To do so, execute the following commands:\n\n"

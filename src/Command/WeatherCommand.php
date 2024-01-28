@@ -3,14 +3,16 @@ declare(strict_types=1);
 
 namespace Weather\Command;
 
+use Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\HelpCommand;
+use Symfony\Component\Console\Exception\ExceptionInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use Weather\Api\OpenWeatherMap;
-use Weather\Exception\WeatherApiDataException;
+use Weather\Enum\Unit;
 use Weather\Exception\WeatherApiException;
 
 /**
@@ -21,24 +23,23 @@ use Weather\Exception\WeatherApiException;
 class WeatherCommand extends Command
 {
     // the name of the command (the part after "bin/console")
-    protected static $defaultName = 'app:weather';
+    protected static string $defaultName = './weather';
 
     /**
      * OpenWeatherMap instance
-     * @var \Weather\Api\OpenWeatherMap
+     * @var OpenWeatherMap
      */
     protected OpenWeatherMap $api;
 
     /**
      * WeatherCommand constructor.
      *
-     * @param \Weather\Api\OpenWeatherMap $api
-     * @param string|null                 $name
+     * @param OpenWeatherMap $api
      */
-    public function __construct(OpenWeatherMap $api, string $name = null)
+    public function __construct(OpenWeatherMap $api)
     {
         $this->api = $api;
-        parent::__construct($name);
+        parent::__construct(self::$defaultName);
     }
 
     protected function configure(): void
@@ -56,11 +57,12 @@ class WeatherCommand extends Command
     }
 
     /**
-     * @param \Symfony\Component\Console\Input\InputInterface   $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param InputInterface $input
+     * @param OutputInterface $output
      *
      * @return int
-     * @throws \Exception
+     * @throws Exception
+     * @throws ExceptionInterface
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -76,22 +78,19 @@ class WeatherCommand extends Command
             $params[] = $country;
         }
 
-        $params = implode(', ', $params);
+        $query = implode(', ', $params);
 
         // Show information about requested city and country
         $output->writeln([
-            "Current weather for {$params}",
+            "Current weather for {$query}",
             '==============================================='
         ]);
 
         try {
-            $data = $this->api->getData($params);
-            // check if received data has right structure
-            if (!isset($data['weather'][0]['main'], $data['main']['temp'])) {
-                throw new WeatherApiDataException('We are not able to process response.');
-            }
+            $weatherData = $this->api->getWeather($query);
             // create some useful information for the user
-            $weather = "{$data['weather'][0]['main']}, {$data['main']['temp']} degrees Celsius";
+            $metric = $this->api->apiConfig->units->label();
+            $weather = "{$weatherData->description}, {$weatherData->temperature}{$metric}";
             $output->writeln($weather);
         } catch (WeatherApiException $e) {
             return $this->handleError($output, $e);
@@ -100,22 +99,23 @@ class WeatherCommand extends Command
         // Show some motivational message
         $output->writeLn([
             '===============================================',
-            "\"There is no bad weather, there is just a non-adequate outfit.\". Enjoy your time in {$params}."
+            "\"There is no bad weather, there is just a non-adequate outfit.\". Enjoy your time in {$query}."
         ]);
 
         return Command::SUCCESS;
     }
 
     /**
-     * Default behavior was to show some not good looking error if required argument is missing.
+     * Default behavior was to show some not good-looking error if required argument is missing.
      * So idea is to make **city** optional but handle it like this and show __help__ message
      * instead of error.
      *
-     * @param \Symfony\Component\Console\Input\InputInterface   $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param InputInterface $input
+     * @param OutputInterface $output
      *
      * @return int
-     * @throws \Exception
+     * @throws Exception
+     * @throws ExceptionInterface
      */
     protected function handleMissingCity(InputInterface $input, OutputInterface $output): int
     {
@@ -128,8 +128,8 @@ class WeatherCommand extends Command
     /**
      * Display error information and return FAILURE code
      *
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     * @param \Weather\Exception\WeatherApiException            $error
+     * @param OutputInterface $output
+     * @param WeatherApiException $error
      *
      * @return int
      */

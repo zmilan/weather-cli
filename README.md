@@ -16,12 +16,12 @@ The Weather is a **PHP-based command-line app** that prints the current weather 
     
     
 ## Starting application
-- Run `docker-compose up -d && docker-compose exec cli bash`
+- Run `docker-compose up -d && docker-compose exec weather_cli bash`
 
 ## Using application
 - `./weather [city] [country]`. Examples:
     + Only with the city name: `./weather London` or `php weather London`
-    + With the city and the country name: `./weather Trstenik SI` or `php weather Trstenik RS`
+    + With the city and the country name: `./weather Trstenik SI` or `php weather Trstenik SI`
 
 ## Running application tests
 - Execute `./vendor/bin/phpunit`

@@ -6,6 +6,9 @@ use Symfony\Component\Console\Application;
 use Weather\Command\WeatherCommand;
 use Weather\Api\OpenWeatherMap;
 use Symfony\Component\Dotenv\Dotenv;
+use Weather\DTO\OpenWeatherMapConfiguration;
+use Weather\Enum\Unit;
+use Weather\Service\SymfonyHttpRequest;
 
 $env = __DIR__ . '/../.env';
 if (!file_exists($env)) {
@@ -31,11 +34,15 @@ if (!isset($_ENV['OPEN_WEATHER_MAP_URL'], $_ENV['OPEN_WEATHER_MAP_KEY'])) {
 
 $container = new Container();
 
-$container['api'] = static fn () => new OpenWeatherMap(
+$container['apiConfig'] = static fn () => new OpenWeatherMapConfiguration(
     $_ENV['OPEN_WEATHER_MAP_URL'],
     $_ENV['OPEN_WEATHER_MAP_KEY'],
-    !empty($_ENV['OPEN_WEATHER_MAP_UNITS']) ? $_ENV['OPEN_WEATHER_MAP_UNITS'] : null
+    Unit::fromEnv($_ENV['OPEN_WEATHER_MAP_UNITS'])
 );
+
+$container['httpRequest'] = static fn () => new SymfonyHttpRequest();
+
+$container['api'] = static fn ($container) => new OpenWeatherMap($container['apiConfig'], $container['httpRequest']);
 
 $container['command.weather'] = static fn ($container) => new WeatherCommand($container['api']);
 
@@ -44,7 +51,7 @@ $container['commands'] = static fn ($container) => [ $container['command.weather
 $container['command.default'] = static fn ($container) => $container['command.weather'];
 
 $container['application'] = static function ($container) {
-    $application = new Application('Weather CLI', '0.1.0');
+    $application = new Application('Weather CLI', '0.1.1');
     $application->addCommands($container['commands']);
     $application->setDefaultCommand($container['command.default']->getName(), true);
 

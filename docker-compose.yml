@@ -1,10 +1,14 @@
-version: '3'
 services:
-  cli:
+  weather_cli:
+    container_name: weather_cli
     build:
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
       context: ./
-      dockerfile: ./Dockerfile
+      dockerfile: ./docker/php/Dockerfile
     volumes:
       - ./:/weather_cli
     command: bash -c 'composer install && chmod +x weather && php -a'
     tty: true
+    stdin_open: true

@@ -11,15 +11,16 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": ">=7.4",
-        "symfony/console": "5.x-dev",
-        "symfony/http-client": "5.x-dev",
-        "symfony/dotenv": "5.x-dev",
-        "pimple/pimple": "^3.3@dev"
+        "php": ">=8.2",
+        "symfony/console": "v7.0.2",
+        "symfony/http-client": "v7.0.2",
+        "symfony/dotenv": "v7.0.2",
+        "pimple/pimple": "^v3.5.0"
     },
     "require-dev": {
         "roave/security-advisories": "dev-master",
-        "phpunit/phpunit": "8.5.x-dev"
+        "phpunit/phpunit": "10.5.7",
+        "mockery/mockery": "2.0.x-dev"
     },
     "autoload": {
         "psr-4": {
