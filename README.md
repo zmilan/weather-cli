@@ -24,4 +24,4 @@ The Weather is a **PHP-based command-line app** that prints the current weather 
     + With the city and the country name: `./weather Trstenik SI` or `php weather Trstenik SI`
 
 ## Running application tests
-- Execute `./vendor/bin/phpunit`
+- Execute `XDEBUG_MODE=coverage ./vendor/bin/phpunit`

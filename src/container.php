@@ -8,6 +8,7 @@ use Weather\Api\OpenWeatherMap;
 use Symfony\Component\Dotenv\Dotenv;
 use Weather\DTO\OpenWeatherMapConfiguration;
 use Weather\Enum\Unit;
+use Weather\Handler\WeatherCommandHandler;
 use Weather\Service\SymfonyHttpRequest;
 
 $env = __DIR__ . '/../.env';
@@ -44,14 +45,16 @@ $container['httpRequest'] = static fn () => new SymfonyHttpRequest();
 
 $container['api'] = static fn ($container) => new OpenWeatherMap($container['apiConfig'], $container['httpRequest']);
 
-$container['command.weather'] = static fn ($container) => new WeatherCommand($container['api']);
+$container['command.handler'] = static fn ($container) => new WeatherCommandHandler($container['api']);
+
+$container['command.weather'] = static fn ($container) => new WeatherCommand($container['command.handler']);
 
 $container['commands'] = static fn ($container) => [ $container['command.weather'] ];
 
 $container['command.default'] = static fn ($container) => $container['command.weather'];
 
 $container['application'] = static function ($container) {
-    $application = new Application('Weather CLI', '0.1.1');
+    $application = new Application('Weather CLI', '1.0.0');
     $application->addCommands($container['commands']);
     $application->setDefaultCommand($container['command.default']->getName(), true);
 

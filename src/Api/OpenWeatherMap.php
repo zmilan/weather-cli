@@ -18,35 +18,28 @@ use Weather\Exception\WeatherApiRequestException;
  * @author [Milan Zivkovic](https://github.com/zmilan)
  * @package Weather\Api
  */
-readonly class OpenWeatherMap
+class OpenWeatherMap
 {
     /**
      * @param OpenWeatherMapConfiguration $apiConfig
      * @param HttpRequestContract $httpRequest
      */
     public function __construct(
-        public OpenWeatherMapConfiguration $apiConfig,
-        private HttpRequestContract         $httpRequest
+        public readonly OpenWeatherMapConfiguration $apiConfig,
+        private readonly HttpRequestContract         $httpRequest
     ){}
 
     /**
      * Call API and return result in form of array.
      *
-     * @param string $query
-     *
+     * @param RequestData $request
      * @return ResponseData
      * @throws WeatherApiDataException
      * @throws WeatherApiProcessException
      * @throws WeatherApiRequestException
      */
-    public function getWeather(string $query): ResponseData
+    public function getWeather(RequestData $request): ResponseData
     {
-        $requestData = new RequestData(
-            $this->apiConfig->apiUrl,
-            $this->apiConfig->apiId,
-            $query,
-            $this->apiConfig->units
-        );
-        return $this->httpRequest->getData($requestData);
+        return $this->httpRequest->getData($this->apiConfig->apiUrl, $this->apiConfig->apiId, $request);
     }
 }

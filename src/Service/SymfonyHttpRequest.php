@@ -4,9 +4,9 @@ namespace Weather\Service;
 
 use Symfony\Component\HttpClient\Exception\InvalidArgumentException;
 use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
+use Throwable;
 use Weather\Contract\HttpRequestContract;
 use Weather\DTO\RequestData;
 use Weather\DTO\ResponseData;
@@ -19,8 +19,11 @@ class SymfonyHttpRequest implements HttpRequestContract
 
     /**
      * @inheritDoc
+     * @throws WeatherApiRequestException
+     * @throws WeatherApiProcessException
+     * @throws WeatherApiDataException
      */
-    public function getData(RequestData $requestData): ResponseData
+    public function getData(string $apiUrl, string $apiKey, RequestData $requestData): ResponseData
     {
         // https://api.openweathermap.org/data/2.5/weather?q={city name},{state code},{country code}&units=metric&appid={API key}
         $client = HttpClient::create([
@@ -28,11 +31,11 @@ class SymfonyHttpRequest implements HttpRequestContract
         ]);
 
         try {
-            $response = $client->request('GET', $requestData->apiUrl, [
+            $response = $client->request('GET',$apiUrl, [
                 'query' => [
                     'q' => $requestData->query,
-                    'units' => $requestData->units?->value,
-                    'appid' => $requestData->appId
+                    'units' => $requestData->unit?->value,
+                    'appid' =>  $apiKey
                 ],
             ]);
 
@@ -57,6 +60,7 @@ class SymfonyHttpRequest implements HttpRequestContract
             return new ResponseData(
                 $data['weather'][0]['main'],
                 $data['main']['temp'],
+                $requestData->unit,
                 $data['name'],
                 $data
             );
@@ -64,7 +68,7 @@ class SymfonyHttpRequest implements HttpRequestContract
             throw new WeatherApiRequestException($e->getMessage(), $e);
         } catch (HttpExceptionInterface $e) {
             throw new WeatherApiRequestException($e->getMessage(), $e);
-        } catch (ExceptionInterface $e) {
+        } catch (Throwable $e) {
             throw new WeatherApiProcessException($e->getMessage(), $e);
         }
     }

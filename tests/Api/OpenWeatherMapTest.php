@@ -1,12 +1,12 @@
 <?php
 
-
 namespace Weather\Api;
 
 use Mockery;
 use PHPUnit\Framework\TestCase;
 use Weather\Contract\HttpRequestContract;
 use Weather\DTO\OpenWeatherMapConfiguration;
+use Weather\DTO\RequestData;
 use Weather\DTO\ResponseData;
 use Weather\Enum\Unit;
 use Weather\Exception\WeatherApiDataException;
@@ -22,11 +22,16 @@ class OpenWeatherMapTest extends TestCase
             Unit::fromEnv(null)
         );
     }
+
+    /**
+     * @covers \Weather\Api\OpenWeatherMap::getWeather
+     */
     public function testGetWeatherSuccessfully(): void
     {
         $responseData = new ResponseData(
             'Sunny',
             '22',
+            Unit::fromEnv(null),
             'Kranj',
             []
         );
@@ -35,14 +40,22 @@ class OpenWeatherMapTest extends TestCase
         $httpRequestMock->shouldReceive('getData')
             ->andReturn($responseData);
 
+        $openWeatherMapConfig = $this->getOpenWeatherMapConfig();
         $openWeatherMap = new OpenWeatherMap(
-            $this->getOpenWeatherMapConfig(),
+            $openWeatherMapConfig,
             $httpRequestMock
         );
-        $weatherData = $openWeatherMap->getWeather('Kranj, SI');
+        $requestData = new RequestData(
+            'Kranj, SI',
+            Unit::fromEnv(null),
+        );
+        $weatherData = $openWeatherMap->getWeather($requestData);
         self::assertEquals('Kranj', $weatherData->name);
     }
 
+    /**
+     * @covers \Weather\Api\OpenWeatherMap::getWeather
+     */
     public function testGetWeatherWrongOpenWeatherMapConfig(): void
     {
         $this->expectException(WeatherApiRequestException::class);
@@ -50,7 +63,7 @@ class OpenWeatherMapTest extends TestCase
         $openWeatherMapConfig = new OpenWeatherMapConfiguration(
             '',
             '',
-            null
+            Unit::fromEnv(null)
         );;
 
         $httpRequestMock = Mockery::mock(HttpRequestContract::class);
@@ -61,9 +74,17 @@ class OpenWeatherMapTest extends TestCase
             $openWeatherMapConfig,
             $httpRequestMock
         );
-        $openWeatherMap->getWeather('Kranj, SI');
+
+        $requestData = new RequestData(
+            'Kranj, SI',
+            Unit::fromEnv(null),
+        );
+        $openWeatherMap->getWeather($requestData);
     }
 
+    /**
+     * @covers \Weather\Api\OpenWeatherMap::getWeather
+     */
     public function testGetWeatherEmptyQueryString(): void
     {
         $this->expectException(WeatherApiRequestException::class);
@@ -77,9 +98,17 @@ class OpenWeatherMapTest extends TestCase
             $httpRequestMock
         );
 
-        $openWeatherMap->getWeather('');
+        $requestData = new RequestData(
+            '',
+            Unit::fromEnv(null),
+        );
+
+        $openWeatherMap->getWeather($requestData);
     }
 
+    /**
+     * @covers \Weather\Api\OpenWeatherMap::getWeather
+     */
     public function testGetWeatherOzCity(): void
     {
         $this->expectException(WeatherApiDataException::class);
@@ -92,6 +121,11 @@ class OpenWeatherMapTest extends TestCase
             $this->getOpenWeatherMapConfig(),
             $httpRequestMock
         );
-        $openWeatherMap->getWeather('Oz');
+
+        $requestData = new RequestData(
+            'Oz',
+            Unit::fromEnv(null),
+        );
+        $openWeatherMap->getWeather($requestData);
     }
 }

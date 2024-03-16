@@ -11,9 +11,10 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use Weather\Api\OpenWeatherMap;
-use Weather\Enum\Unit;
+use Weather\DTO\InputData;
+use Weather\Exception\InvalidInputException;
 use Weather\Exception\WeatherApiException;
+use Weather\Handler\WeatherCommandHandler;
 
 /**
  * Class WeatherCommand
@@ -26,19 +27,12 @@ class WeatherCommand extends Command
     protected static string $defaultName = './weather';
 
     /**
-     * OpenWeatherMap instance
-     * @var OpenWeatherMap
-     */
-    protected OpenWeatherMap $api;
-
-    /**
      * WeatherCommand constructor.
      *
-     * @param OpenWeatherMap $api
+     * @param WeatherCommandHandler $handler
      */
-    public function __construct(OpenWeatherMap $api)
+    public function __construct(private readonly WeatherCommandHandler $handler)
     {
-        $this->api = $api;
         parent::__construct(self::$defaultName);
     }
 
@@ -66,40 +60,29 @@ class WeatherCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $city = $input->getArgument('city');
-        $country = $input->getArgument('country');
-
-        if (empty($city)) {
-            return $this->handleMissingCity($input, $output);
-        }
-
-        $params = [$city];
-        if ($country) {
-            $params[] = $country;
-        }
-
-        $query = implode(', ', $params);
-
-        // Show information about requested city and country
-        $output->writeln([
-            "Current weather for {$query}",
-            '==============================================='
-        ]);
+        $inputData = new InputData(
+            $input->getArgument('city'),
+            $input->getArgument('country')
+        );
 
         try {
-            $weatherData = $this->api->getWeather($query);
-            // create some useful information for the user
-            $metric = $this->api->apiConfig->units->label();
-            $weather = "{$weatherData->description}, {$weatherData->temperature}{$metric}";
-            $output->writeln($weather);
-        } catch (WeatherApiException $e) {
-            return $this->handleError($output, $e);
+            $weatherData = $this->handler->execute($inputData);
+        } catch (InvalidInputException $invalidInputException) {
+            $output->writeln($invalidInputException->getMessage());
+            return $this->handleMissingCity($input, $output);
+        } catch (WeatherApiException $weatherApiException) {
+            return $this->handleError($output, $weatherApiException);
         }
+
+        // create some useful information for the user
+        $metric = $weatherData->unit->label();
+        $weather = "{$weatherData->description}, {$weatherData->temperature}{$metric}";
+        $output->writeln($weather);
 
         // Show some motivational message
         $output->writeLn([
             '===============================================',
-            "\"There is no bad weather, there is just a non-adequate outfit.\". Enjoy your time in {$query}."
+            "\"There is no bad weather, there is just a non-adequate outfit.\". Enjoy!"
         ]);
 
         return Command::SUCCESS;
