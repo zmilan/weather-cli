@@ -1,6 +1,6 @@
 <?php
 
-namespace Weather\Handler;
+namespace Tests\Handler;
 
 use Weather\Api\OpenWeatherMap;
 use Weather\Contract\HttpRequestContract;
@@ -12,6 +12,7 @@ use Weather\Enum\Unit;
 use Weather\Exception\InvalidInputException;
 use PHPUnit\Framework\TestCase;
 use Mockery;
+use Weather\Handler\WeatherCommandHandler;
 
 class WeatherCommandHandlerTest extends TestCase
 {

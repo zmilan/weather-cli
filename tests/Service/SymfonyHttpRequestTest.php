@@ -1,12 +1,13 @@
 <?php
 
-namespace Weather\Service;
+namespace Tests\Service;
 
 use PHPUnit\Framework\TestCase;
 use Weather\DTO\RequestData;
 use Weather\Enum\Unit;
 use Weather\Exception\WeatherApiProcessException;
 use Weather\Exception\WeatherApiRequestException;
+use Weather\Service\SymfonyHttpRequest;
 
 class SymfonyHttpRequestTest extends TestCase
 {

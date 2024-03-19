@@ -1,6 +1,6 @@
 <?php
 
-namespace Weather\Enum;
+namespace Tests\Enum;
 
 use PHPUnit\Framework\TestCase;
 use Weather\Enum\Unit;

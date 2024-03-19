@@ -1,9 +1,10 @@
 <?php
 
-namespace Weather\Api;
+namespace Tests\Api;
 
 use Mockery;
 use PHPUnit\Framework\TestCase;
+use Weather\Api\OpenWeatherMap;
 use Weather\Contract\HttpRequestContract;
 use Weather\DTO\OpenWeatherMapConfiguration;
 use Weather\DTO\RequestData;
